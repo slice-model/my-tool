@@ -4,7 +4,7 @@
 <!-- 积分换算工具 · 作者：巫丢丢 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="author" content="巫丢丢">
+<meta name="author" content="730巫丢丢">
 <meta name="description" content="积分换算工具：药榜 / 坐骑榜 / 矿榜 阶梯积分加权换算">
 <meta name="theme-color" content="#eef2ff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0a0f1e" media="(prefers-color-scheme: dark)">
@@ -58,7 +58,14 @@ header p{font-size:14px;color:var(--muted);letter-spacing:.3px}
 .tabs{position:relative;display:flex;gap:6px;padding:6px;margin-bottom:18px;border-radius:18px;background:var(--tabs-bg);border:1px solid var(--tabs-ring);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 8px 28px rgba(15,23,42,.07)}
 .tab-pill{position:absolute;top:0;left:0;width:0;height:0;border-radius:13px;--ring:rgba(99,102,241,.32);background:linear-gradient(135deg,var(--c1),var(--c2));box-shadow:0 2px 8px var(--ring);transition:transform .42s var(--ease),width .42s var(--ease),background .35s linear,box-shadow .35s linear;will-change:transform,width}
 .tab{position:relative;z-index:1;flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 6px;border:0;border-radius:13px;background:transparent;font-family:inherit;font-size:15px;font-weight:600;color:var(--muted);cursor:pointer;transition:color .25s}
-.tab:hover{color:var(--text-2)}
+/* 触屏设备没有真正的 hover，:hover 会“粘”在元素上；用 hover:hover 只在有鼠标时生效 */
+@media (hover:hover){
+  .tab:hover{color:var(--text-2)}
+  .ghost-btn:hover{color:var(--text);border-color:var(--c1);background:var(--tint-1)}
+  .copy-btn:hover{background:var(--tint-1);transform:translateY(-1px)}
+  .calc-btn:hover{transform:translateY(-2px);filter:saturate(1.08);box-shadow:0 16px 34px var(--ring)}
+  .calc-btn:hover::after{left:120%}
+}
 .tab.active{color:#fff}
 .tab .ico{font-size:16px;line-height:1}
 .panel{display:none}
@@ -71,7 +78,6 @@ header p{font-size:14px;color:var(--muted);letter-spacing:.3px}
 .section-title{flex:1;display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;letter-spacing:1.2px;color:var(--text-2)}
 .section-title::after{content:"";flex:1;height:1px;background:var(--line)}
 .ghost-btn{padding:6px 13px;border-radius:999px;border:1px solid var(--line);background:var(--card-2);font-family:inherit;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:color .2s,border-color .2s,background .2s,transform .15s}
-.ghost-btn:hover{color:var(--text);border-color:var(--c1);background:var(--tint-1)}
 .ghost-btn:active{transform:scale(.96)}
 .item-row{display:grid;grid-template-columns:82px 1fr auto;align-items:center;gap:12px;margin-bottom:10px;padding:10px 14px;border-radius:14px;background:var(--card-2);border:1.5px solid var(--line);transition:border-color .2s,background .2s,box-shadow .2s,transform .2s}
 .item-row:focus-within{border-color:var(--c1);background:var(--card);box-shadow:0 0 0 4px var(--ring);transform:translateY(-1px)}
@@ -92,8 +98,6 @@ header p{font-size:14px;color:var(--muted);letter-spacing:.3px}
 .tier-meta em{font-style:normal;font-weight:800;color:var(--c1)}
 .calc-btn{position:relative;overflow:hidden;width:100%;margin-top:16px;padding:16px;border:0;border-radius:14px;font-family:inherit;font-size:16.5px;font-weight:700;letter-spacing:1.2px;color:#fff;cursor:pointer;background:linear-gradient(135deg,var(--c1),var(--c2));box-shadow:0 10px 26px var(--ring);transition:transform .2s var(--ease),box-shadow .25s,filter .25s}
 .calc-btn::after{content:"";position:absolute;top:0;left:-60%;width:45%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.5),transparent);transform:skewX(-18deg);transition:left .6s var(--ease)}
-.calc-btn:hover{transform:translateY(-2px);filter:saturate(1.08);box-shadow:0 16px 34px var(--ring)}
-.calc-btn:hover::after{left:120%}
 .calc-btn:active{transform:translateY(0) scale(.995)}
 .result{margin-top:22px;display:none}
 .result.show{display:block;animation:rise .45s var(--ease)}
@@ -105,7 +109,6 @@ header p{font-size:14px;color:var(--muted);letter-spacing:.3px}
 .chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:14px}
 .chip{padding:5px 11px;border-radius:999px;font-size:12px;font-weight:700;color:var(--c1);letter-spacing:.3px;background:var(--card);border:1px solid var(--tint-line)}
 .copy-btn{margin-top:16px;padding:10px 20px;border-radius:999px;border:1.5px solid var(--tint-line);background:var(--card);font-family:inherit;font-size:13px;font-weight:700;letter-spacing:.5px;color:var(--c1);cursor:pointer;transition:background .2s,transform .2s,color .2s,border-color .2s}
-.copy-btn:hover{background:var(--tint-1);transform:translateY(-1px)}
 .copy-btn.done{color:#fff;border-color:transparent;background:linear-gradient(135deg,var(--c1),var(--c2))}
 .steps{margin-top:16px;padding:16px 18px;border-radius:16px;background:var(--card-2);border:1px solid var(--line)}
 .steps-title{display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:12.5px;font-weight:700;letter-spacing:1.2px;color:var(--text-2)}
@@ -124,16 +127,21 @@ header p{font-size:14px;color:var(--muted);letter-spacing:.3px}
   .tab-pill{--ring:color-mix(in srgb,var(--c1) 42%,transparent)}
 }
 @media (max-width:520px){
-  body{padding:32px 14px 48px}
+  /* iOS Safari：地址栏随滚动收缩时 fixed 背景会抖动/错位，改 scroll */
+  /* 底部留白叠加安全区，避免刘海机型横屏时被 Home 条压住 */
+  body{padding:32px 14px calc(48px + env(safe-area-inset-bottom));background-attachment:scroll}
   header h1{font-size:24px}
   .card{padding:20px 18px;border-radius:20px}
   .result-big{font-size:26px}
   .total-value{font-size:21px}
-  .tab{padding:11px 4px;font-size:13.5px;gap:4px}
+  .tab{padding:12px 4px;font-size:13.5px;gap:4px}
   .tab .ico{font-size:14px}
   .item-row{grid-template-columns:64px 1fr auto;gap:8px;padding:8px 10px}
   .item-name{font-size:13px}
   .item-mult{padding:3px 8px;font-size:11px}
+  /* 输入框字号必须 ≥16px，否则 iOS 聚焦时会自动放大整页；同时加高到约 44px 便于点按 */
+  .item-row input{padding:12px;font-size:16px}
+  .ghost-btn{padding:12px 16px;font-size:12.5px}
   .tier-meta{font-size:11px}
   .steps{padding:14px}
 }
@@ -156,7 +164,7 @@ header p{font-size:14px;color:var(--muted);letter-spacing:.3px}
 
   <div class="footer-note">
     <span>结果保留两位小数 · 按阶梯逐级消耗计算</span>
-    <span class="author" title="作者：巫丢丢">巫丢丢</span>
+    <span class="author" title="作者：730巫丢丢">730巫丢丢</span>
   </div>
 </div>
 
@@ -169,7 +177,7 @@ const boards = [
     bg1: '#ecfdf5', bg2: '#d1fae5', border: 'rgba(16,185,129,.22)', ring: 'rgba(16,185,129,.2)',
     items: [
       { name: '普通', mult: 1 },
-      { name: '人生果', mult: 25 }
+      { name: '人参果', mult: 25 }
     ],
     levels: [
       { capacity: 1200000, rate: 1.0, desc: '0~120万' },
