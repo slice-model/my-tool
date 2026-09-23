@@ -1,551 +1,1603 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
-<!-- 积分换算工具 · 作者：巫丢丢 -->
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="author" content="730巫丢丢">
-<meta name="description" content="积分换算工具：药榜 / 坐骑榜 / 矿榜 阶梯积分加权换算">
-<meta name="theme-color" content="#eef2ff" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0a0f1e" media="(prefers-color-scheme: dark)">
-<title>积分换算工具</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🧮</text></svg>">
-<style>
-:root{
-  color-scheme:light dark;
-  --page-1:#eef2ff;--page-2:#fdf4ff;--page-3:#fff1f2;
-  --card:#ffffff;--card-2:#f8fafc;--card-3:#eef2f7;
-  --text:#0f172a;--text-2:#334155;--muted:#64748b;--faint:#94a3b8;
-  --line:#e6ebf3;
-  --shadow:0 18px 50px rgba(15,23,42,.10),0 2px 8px rgba(15,23,42,.04);
-  --tabs-bg:rgba(255,255,255,.72);--tabs-ring:rgba(255,255,255,.9);
-  --orb:.5;--ease:cubic-bezier(.22,1,.36,1);
-  --c1:#6366f1;--c2:#ec4899;
-  --bg1:#eef2ff;--bg2:#e0e7ff;--border:rgba(99,102,241,.22);--ring-base:rgba(99,102,241,.18);
-}
-@media (prefers-color-scheme:dark){
-  :root{
-    --page-1:#0a0f1e;--page-2:#140f26;--page-3:#1c1024;
-    --card:#141824;--card-2:#1a1f2e;--card-3:#232a3d;
-    --text:#eef2f8;--text-2:#cbd5e1;--muted:#9aa7bd;--faint:#78849c;
-    --line:#272e42;
-    --shadow:0 18px 50px rgba(0,0,0,.5),0 2px 8px rgba(0,0,0,.3);
-    --tabs-bg:rgba(255,255,255,.05);--tabs-ring:rgba(255,255,255,.08);
-    --orb:.3;
-  }
-}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html{-webkit-text-size-adjust:100%}
-body{
-  position:relative;overflow-x:hidden;
-  min-height:100vh;min-height:100dvh;padding:46px 20px 64px;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
-  color:var(--text);background:linear-gradient(160deg,var(--page-1),var(--page-2) 52%,var(--page-3));
-  background-attachment:fixed;
-  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
-}
-body::before,body::after{content:"";position:fixed;z-index:0;border-radius:50%;filter:blur(70px);opacity:var(--orb);pointer-events:none}
-body::before{width:340px;height:340px;left:-110px;top:-80px;background:radial-gradient(circle,rgba(99,102,241,.9),transparent 70%);animation:drift1 20s ease-in-out infinite}
-body::after{width:380px;height:380px;right:-130px;bottom:-100px;background:radial-gradient(circle,rgba(236,72,153,.75),transparent 70%);animation:drift2 24s ease-in-out infinite}
-@keyframes drift1{0%,100%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(26px,36px,0) scale(1.1)}}
-@keyframes drift2{0%,100%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(-34px,-26px,0) scale(1.12)}}
-.container{position:relative;z-index:1;max-width:640px;margin:0 auto}
-header{text-align:center;margin-bottom:26px}
-.badge{display:inline-flex;align-items:center;gap:7px;padding:5px 13px;margin-bottom:14px;border-radius:999px;font-size:12px;font-weight:600;letter-spacing:.5px;color:var(--muted);background:var(--tabs-bg);border:1px solid var(--tabs-ring);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
-.badge i{display:block;width:6px;height:6px;border-radius:50%;background:linear-gradient(135deg,var(--c1),var(--c2))}
-header h1{font-size:30px;line-height:1.25;letter-spacing:.5px;margin-bottom:10px;background:linear-gradient(120deg,#6366f1,#a855f7 45%,#ec4899);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
-header p{font-size:14px;color:var(--muted);letter-spacing:.3px}
-.tabs{position:relative;display:flex;gap:6px;padding:6px;margin-bottom:18px;border-radius:18px;background:var(--tabs-bg);border:1px solid var(--tabs-ring);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 8px 28px rgba(15,23,42,.07)}
-.tab-pill{position:absolute;top:0;left:0;width:0;height:0;border-radius:13px;--ring:rgba(99,102,241,.32);background:linear-gradient(135deg,var(--c1),var(--c2));box-shadow:0 2px 8px var(--ring);transition:transform .42s var(--ease),width .42s var(--ease),background .35s linear,box-shadow .35s linear;will-change:transform,width}
-.tab{position:relative;z-index:1;flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 6px;border:0;border-radius:13px;background:transparent;font-family:inherit;font-size:15px;font-weight:600;color:var(--muted);cursor:pointer;transition:color .25s}
-/* 触屏设备没有真正的 hover，:hover 会“粘”在元素上；用 hover:hover 只在有鼠标时生效 */
-@media (hover:hover){
-  .tab:hover{color:var(--text-2)}
-  .ghost-btn:hover{color:var(--text);border-color:var(--c1);background:var(--tint-1)}
-  .copy-btn:hover{background:var(--tint-1);transform:translateY(-1px)}
-  .calc-btn:hover{transform:translateY(-2px);filter:saturate(1.08);box-shadow:0 16px 34px var(--ring)}
-  .calc-btn:hover::after{left:120%}
-}
-.tab.active{color:#fff}
-.tab .ico{font-size:16px;line-height:1}
-.panel{display:none}
-.panel.active{display:block;animation:rise .4s var(--ease)}
-@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-.card{position:relative;overflow:hidden;padding:26px;border-radius:22px;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow)}
-.card::before{content:"";position:absolute;left:0;right:0;top:0;height:110px;pointer-events:none;background:linear-gradient(180deg,var(--tint-1),transparent)}
-.card>*{position:relative}
-.section-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-.section-title{flex:1;display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;letter-spacing:1.2px;color:var(--text-2)}
-.section-title::after{content:"";flex:1;height:1px;background:var(--line)}
-.ghost-btn{padding:6px 13px;border-radius:999px;border:1px solid var(--line);background:var(--card-2);font-family:inherit;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:color .2s,border-color .2s,background .2s,transform .15s}
-.ghost-btn:active{transform:scale(.96)}
-.item-row{display:grid;grid-template-columns:82px 1fr auto;align-items:center;gap:12px;margin-bottom:10px;padding:10px 14px;border-radius:14px;background:var(--card-2);border:1.5px solid var(--line);transition:border-color .2s,background .2s,box-shadow .2s,transform .2s}
-.item-row:focus-within{border-color:var(--c1);background:var(--card);box-shadow:0 0 0 4px var(--ring);transform:translateY(-1px)}
-.item-name{overflow:hidden;font-size:14px;font-weight:600;color:var(--text-2);white-space:nowrap;text-overflow:ellipsis}
-.item-mult{padding:4px 10px;border-radius:999px;font-size:12.5px;font-weight:700;color:var(--c1);letter-spacing:.3px;background:var(--tint-1);border:1px solid var(--tint-line);white-space:nowrap}
-.item-row input{width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);font-family:inherit;font-size:15px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums;outline:none;-moz-appearance:textfield;transition:border-color .2s,box-shadow .2s}
-.item-row input::placeholder{color:var(--faint);font-weight:500}
-.item-row input:focus{border-color:var(--c1);box-shadow:0 0 0 4px var(--ring)}
-.item-row input::-webkit-outer-spin-button,
-.item-row input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
-.total-display{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:16px;padding:16px 20px;border-radius:16px;background:linear-gradient(135deg,var(--tint-1),var(--tint-2));border:1.5px solid var(--tint-line)}
-.total-label{font-size:13px;font-weight:700;color:var(--text-2);letter-spacing:.6px}
-.total-value{font-size:25px;font-weight:800;line-height:1.2;color:var(--c1);font-variant-numeric:tabular-nums;text-align:right;word-break:break-all}
-.tier{margin-top:14px}
-.tier-bar{height:8px;border-radius:999px;background:var(--card-3);border:1px solid var(--line);overflow:hidden}
-.tier-fill{height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--c1),var(--c2));transition:width .5s var(--ease)}
-.tier-meta{display:flex;justify-content:space-between;gap:10px;margin-top:8px;font-size:12px;font-weight:600;color:var(--muted)}
-.tier-meta em{font-style:normal;font-weight:800;color:var(--c1)}
-.calc-btn{position:relative;overflow:hidden;width:100%;margin-top:16px;padding:16px;border:0;border-radius:14px;font-family:inherit;font-size:16.5px;font-weight:700;letter-spacing:1.2px;color:#fff;cursor:pointer;background:linear-gradient(135deg,var(--c1),var(--c2));box-shadow:0 10px 26px var(--ring);transition:transform .2s var(--ease),box-shadow .25s,filter .25s}
-.calc-btn::after{content:"";position:absolute;top:0;left:-60%;width:45%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.5),transparent);transform:skewX(-18deg);transition:left .6s var(--ease)}
-.calc-btn:active{transform:translateY(0) scale(.995)}
-.result{margin-top:22px;display:none}
-.result.show{display:block;animation:rise .45s var(--ease)}
-.result-box{padding:24px 22px;border-radius:18px;text-align:center;background:linear-gradient(135deg,var(--tint-1),var(--tint-2));border:1px solid var(--tint-line)}
-.result-label{margin-bottom:10px;font-size:12.5px;font-weight:600;letter-spacing:1.2px;color:var(--muted)}
-.result-big{font-size:32px;font-weight:800;line-height:1.15;color:var(--c1);font-variant-numeric:tabular-nums;word-break:break-all}
-.result-sub{margin-top:8px;font-size:14.5px;font-weight:600;color:var(--text-2)}
-.result-sub span{font-size:18px;font-weight:800;color:var(--c1)}
-.chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:14px}
-.chip{padding:5px 11px;border-radius:999px;font-size:12px;font-weight:700;color:var(--c1);letter-spacing:.3px;background:var(--card);border:1px solid var(--tint-line)}
-.copy-btn{margin-top:16px;padding:10px 20px;border-radius:999px;border:1.5px solid var(--tint-line);background:var(--card);font-family:inherit;font-size:13px;font-weight:700;letter-spacing:.5px;color:var(--c1);cursor:pointer;transition:background .2s,transform .2s,color .2s,border-color .2s}
-.copy-btn.done{color:#fff;border-color:transparent;background:linear-gradient(135deg,var(--c1),var(--c2))}
-.steps{margin-top:16px;padding:16px 18px;border-radius:16px;background:var(--card-2);border:1px solid var(--line)}
-.steps-title{display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:12.5px;font-weight:700;letter-spacing:1.2px;color:var(--text-2)}
-.steps-title::after{content:"";flex:1;height:1px;background:var(--line)}
-.step-item{display:flex;gap:10px;padding:8px 0;font-size:13px;line-height:1.65;color:var(--text-2)}
-.step-item+.step-item{border-top:1px dashed var(--line)}
-.step-num{flex:none;display:flex;align-items:center;justify-content:center;width:22px;height:22px;margin-top:1px;border-radius:50%;font-size:11px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--c1),var(--c2));box-shadow:0 3px 10px var(--ring)}
-.step-text{flex:1}
-.step-text b{font-weight:800;color:var(--c1);font-variant-numeric:tabular-nums}
-.step-text .k{color:var(--muted);font-variant-numeric:tabular-nums}
-.footer-note{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:26px;font-size:12px;color:var(--faint);text-align:center}
-.footer-note .author{font-size:11px;font-weight:600;letter-spacing:1px;opacity:.55}
-.tab,.panel{--tint-1:var(--bg1);--tint-2:var(--bg2);--tint-line:var(--border);--ring:var(--ring-base)}
-@supports (color:color-mix(in srgb,red 50%,transparent)){
-  .tab,.panel{--tint-1:color-mix(in srgb,var(--c1) 10%,transparent);--tint-2:color-mix(in srgb,var(--c1) 19%,transparent);--tint-line:color-mix(in srgb,var(--c1) 30%,transparent);--ring:color-mix(in srgb,var(--c1) 22%,transparent)}
-  .tab-pill{--ring:color-mix(in srgb,var(--c1) 42%,transparent)}
-}
-@media (max-width:520px){
-  /* iOS Safari：地址栏随滚动收缩时 fixed 背景会抖动/错位，改 scroll */
-  /* 底部留白叠加安全区，避免刘海机型横屏时被 Home 条压住 */
-  body{padding:32px 14px calc(48px + env(safe-area-inset-bottom));background-attachment:scroll}
-  header h1{font-size:24px}
-  .card{padding:20px 18px;border-radius:20px}
-  .result-big{font-size:26px}
-  .total-value{font-size:21px}
-  .tab{padding:12px 4px;font-size:13.5px;gap:4px}
-  .tab .ico{font-size:14px}
-  .item-row{grid-template-columns:64px 1fr auto;gap:8px;padding:8px 10px}
-  .item-name{font-size:13px}
-  .item-mult{padding:3px 8px;font-size:11px}
-  /* 输入框字号必须 ≥16px，否则 iOS 聚焦时会自动放大整页；同时加高到约 44px 便于点按 */
-  .item-row input{padding:12px;font-size:16px}
-  .ghost-btn{padding:12px 16px;font-size:12.5px}
-  .tier-meta{font-size:11px}
-  .steps{padding:14px}
-}
-@media (max-width:380px){.tab .ico{display:none}}
-@media (prefers-reduced-motion:reduce){
-  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
-}
-</style>
-</head>
-<body>
-<div class="container">
-  <header>
-    <div class="badge"><i></i>阶梯积分 · 自动加权换算</div>
-    <h1>积分换算工具</h1>
-    <p>输入各类数量，自动加权并逐阶换算</p>
-  </header>
-
-  <div class="tabs" id="tabs"><span class="tab-pill" id="tabPill"></span></div>
-  <div id="panels"></div>
-
-  <div class="footer-note">
-    <span>结果保留两位小数 · 按阶梯逐级消耗计算</span>
-    <span class="author" title="作者：730巫丢丢">730巫丢丢</span>
-  </div>
-</div>
-
-<script>
-/* ===== 榜单数据（作者：巫丢丢） ===== */
-const boards = [
-  {
-    id: 'yao', name: '药榜', icon: '🌿',
-    c1: '#10b981', c2: '#059669', c1d: '#34d399', c2d: '#10b981',
-    bg1: '#ecfdf5', bg2: '#d1fae5', border: 'rgba(16,185,129,.22)', ring: 'rgba(16,185,129,.2)',
-    items: [
-      { name: '普通', mult: 1 },
-      { name: '人参果', mult: 25 }
-    ],
-    levels: [
-      { capacity: 1200000, rate: 1.0, desc: '0~120万' },
-      { capacity: 500000, rate: 0.8, desc: '120~160万' },
-      { capacity: 1333333.3333333333, rate: 0.6, desc: '160~240万' },
-      { capacity: 2000000, rate: 0.4, desc: '240~320万' },
-      { capacity: 4000000, rate: 0.2, desc: '320~400万' },
-      { capacity: 8000000, rate: 0.1, desc: '400~480万' },
-      { capacity: Infinity, rate: 0.05, desc: '480~∞' }
-    ]
-  },
-  {
-    id: 'cao', name: '坐骑榜', icon: '🐎',
-    c1: '#f59e0b', c2: '#d97706', c1d: '#fbbf24', c2d: '#f59e0b',
-    bg1: '#fffbeb', bg2: '#fef3c7', border: 'rgba(245,158,11,.22)', ring: 'rgba(245,158,11,.2)',
-    items: [
-      { name: '马草', mult: 2 },
-      { name: '驭灵', mult: 5 }
-    ],
-    levels: [
-      { capacity: 30000, rate: 1.0, desc: '0~3万' },
-      { capacity: 12500, rate: 0.8, desc: '3~4万' },
-      { capacity: 33333.3333333333, rate: 0.6, desc: '4~6万' },
-      { capacity: 50000, rate: 0.4, desc: '6~8万' },
-      { capacity: 100000, rate: 0.2, desc: '8~10万' },
-      { capacity: 200000, rate: 0.1, desc: '10~12万' },
-      { capacity: Infinity, rate: 0.05, desc: '12~∞' }
-    ]
-  },
-  {
-    id: 'kuang', name: '矿榜', icon: '⛏️',
-    c1: '#6366f1', c2: '#4f46e5', c1d: '#818cf8', c2d: '#6366f1',
-    bg1: '#eef2ff', bg2: '#e0e7ff', border: 'rgba(99,102,241,.22)', ring: 'rgba(99,102,241,.2)',
-    items: [
-      { name: '普通', mult: 1 },
-      { name: '高级', mult: 10 },
-      { name: '进阶', mult: 25 }
-    ],
-    levels: [
-      { capacity: 1500000, rate: 1.0, desc: '0~150万' },
-      { capacity: 625000, rate: 0.8, desc: '150~200万' },
-      { capacity: 1666666.6666666667, rate: 0.6, desc: '200~300万' },
-      { capacity: 2500000, rate: 0.4, desc: '300~400万' },
-      { capacity: 5000000, rate: 0.2, desc: '400~500万' },
-      { capacity: 10000000, rate: 0.1, desc: '500~600万' },
-      { capacity: Infinity, rate: 0.05, desc: '600~∞' }
-    ]
-  }
-];
-
-/* ===== 渲染 ===== */
-const tabsEl = document.getElementById('tabs');
-const panelsEl = document.getElementById('panels');
-const pillEl = document.getElementById('tabPill');
-const mqDark = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : { matches: false };
-const mqReduce = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
-const state = {};
-
-function findBoard(id) {
-  return boards.find(b => b.id === id);
-}
-
-function panelOf(board) {
-  return panelsEl.querySelector('.panel[data-id="' + board.id + '"]');
-}
-
-/* 深色模式下换成更亮的主色，保证可读性 */
-function accent(board) {
-  return mqDark.matches ? { c1: board.c1d, c2: board.c2d } : { c1: board.c1, c2: board.c2 };
-}
-
-function applyVars(el, board) {
-  const a = accent(board);
-  el.style.setProperty('--c1', a.c1);
-  el.style.setProperty('--c2', a.c2);
-  el.style.setProperty('--bg1', board.bg1);
-  el.style.setProperty('--bg2', board.bg2);
-  el.style.setProperty('--border', board.border);
-  el.style.setProperty('--ring-base', board.ring);
-}
-
-boards.forEach((b, i) => {
-  state[b.id] = { total: 0, result: 0, shown: false };
-
-  /* --- 标签 --- */
-  const tab = document.createElement('button');
-  tab.type = 'button';
-  tab.className = 'tab' + (i === 0 ? ' active' : '');
-  tab.dataset.id = b.id;
-  applyVars(tab, b);
-  tab.innerHTML = '<span class="ico">' + b.icon + '</span><span>' + b.name + '</span>';
-  tab.addEventListener('click', () => switchTab(b.id));
-  tabsEl.appendChild(tab);
-
-  /* --- 面板 --- */
-  const panel = document.createElement('div');
-  panel.className = 'panel' + (i === 0 ? ' active' : '');
-  panel.dataset.id = b.id;
-  applyVars(panel, b);
-
-  const itemsHTML = b.items.map((item, idx) => [
-    '<div class="item-row">',
-    '  <span class="item-name">' + item.name + '</span>',
-    '  <input type="number" class="item-input" data-idx="' + idx + '" placeholder="0" step="any" min="0" inputmode="decimal" enterkeyhint="done" aria-label="' + item.name + '数量">',
-    '  <span class="item-mult">× ' + item.mult + '</span>',
-    '</div>'
-  ].join('\n')).join('');
-
-  panel.innerHTML = [
-    '<div class="card">',
-    '  <div class="section-head">',
-    '    <div class="section-title">输入数量</div>',
-    '    <button type="button" class="ghost-btn" data-clear>清空</button>',
-    '  </div>',
-    itemsHTML,
-    '  <div class="total-display">',
-    '    <span class="total-label">总数</span>',
-    '    <span class="total-value" id="total-' + b.id + '">0.00</span>',
-    '  </div>',
-    '  <div class="tier">',
-    '    <div class="tier-bar"><div class="tier-fill" id="fill-' + b.id + '"></div></div>',
-    '    <div class="tier-meta">',
-    '      <span id="tier-' + b.id + '">等待输入…</span>',
-    '      <span id="tier-next-' + b.id + '"></span>',
-    '    </div>',
-    '  </div>',
-    '  <button type="button" class="calc-btn" id="btn-' + b.id + '">开始换算</button>',
-    '  <div class="result" id="result-' + b.id + '">',
-    '    <div class="result-box">',
-    '      <div class="result-label">换算结果</div>',
-    '      <div class="result-big" id="big-' + b.id + '">0.00</div>',
-    '      <div class="result-sub">即 <span id="wan-' + b.id + '">0.00</span> 万</div>',
-    '      <div class="chips" id="chips-' + b.id + '"></div>',
-    '      <button type="button" class="copy-btn" data-copy>复制结果</button>',
-    '    </div>',
-    '    <div class="steps" id="steps-' + b.id + '"></div>',
-    '  </div>',
-    '</div>'
-  ].join('\n');
-  panelsEl.appendChild(panel);
-
-  /* --- 事件 --- */
-  panel.querySelectorAll('.item-input').forEach(inp => {
-    inp.addEventListener('input', () => {
-      updateLive(b);
-      if (state[b.id].shown) calculate(b, false);
-    });
-    inp.addEventListener('keydown', e => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        calculate(b, true);
-      }
-    });
-  });
-
-  panel.querySelector('[data-clear]').addEventListener('click', () => {
-    panel.querySelectorAll('.item-input').forEach(inp => { inp.value = ''; });
-    state[b.id] = { total: 0, result: 0, shown: false };
-    document.getElementById('result-' + b.id).classList.remove('show');
-    updateLive(b);
-    const first = panel.querySelector('.item-input');
-    if (first) first.focus();
-  });
-
-  document.getElementById('btn-' + b.id).addEventListener('click', () => calculate(b, true));
-  panel.querySelector('[data-copy]').addEventListener('click', function () { copyResult(b, this); });
-
-  updateLive(b);
-});
-
-/* ===== 计算与交互 ===== */
-function formatNumber(num) {
-  return num.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
-/* 加权总数：数量 × 各自倍率 */
-function getWeightedTotal(board) {
-  let total = 0;
-  panelOf(board).querySelectorAll('.item-input').forEach(inp => {
-    const v = parseFloat(inp.value);
-    if (isFinite(v) && v > 0) total += v * board.items[Number(inp.dataset.idx)].mult;
-  });
-  return total;
-}
-
-/* 判断总数落在第几阶（阶的阈值 = 各阶可消耗量累加） */
-function computeTier(board, total) {
-  const caps = board.levels.map(l => l.capacity);
-  let cum = 0, idx = -1, upper = Infinity;
-  for (let i = 0; i < caps.length; i++) {
-    cum += caps[i];
-    if (total <= cum) { idx = i; upper = cum; break; }
-  }
-  if (idx === -1) { idx = caps.length - 1; upper = Infinity; }
-  let lower = 0;
-  for (let i = 0; i < idx; i++) lower += caps[i];
-  const infinite = !isFinite(caps[idx]);
-  const pct = infinite ? 1 : (upper > lower ? Math.min(1, Math.max(0, (total - lower) / (upper - lower))) : 0);
-  return { idx: idx, lower: lower, upper: upper, infinite: infinite, pct: pct, distance: infinite ? null : Math.max(0, upper - total) };
-}
-
-/* 实时刷新总数与档位进度 */
-function updateLive(board) {
-  const total = getWeightedTotal(board);
-  document.getElementById('total-' + board.id).textContent = formatNumber(total);
-
-  const fillEl = document.getElementById('fill-' + board.id);
-  const metaEl = document.getElementById('tier-' + board.id);
-  const nextEl = document.getElementById('tier-next-' + board.id);
-
-  if (total <= 0) {
-    fillEl.style.width = '0%';
-    metaEl.textContent = '等待输入…';
-    nextEl.textContent = '';
-  } else {
-    const t = computeTier(board, total);
-    const lv = board.levels[t.idx];
-    fillEl.style.width = (t.pct * 100).toFixed(2) + '%';
-    metaEl.innerHTML = '第 ' + (t.idx + 1) + ' 阶 · ' + lv.desc + ' <em>×' + (lv.rate * 100) + '%</em>';
-    nextEl.textContent = t.infinite ? '已达最高阶' : '距下一阶还需 ' + formatNumber(t.distance);
-  }
-
-  state[board.id].total = total;
-  return total;
-}
-
-/* 数字滚动动画 */
-function animateNumber(el, from, to) {
-  if (el._raf) cancelAnimationFrame(el._raf);
-  if (mqReduce.matches || !isFinite(from)) {
-    el.textContent = formatNumber(to);
-    return;
-  }
-  const dur = 520, t0 = performance.now();
-  const tick = now => {
-    const p = Math.min(1, (now - t0) / dur);
-    const e = 1 - Math.pow(1 - p, 3);
-    el.textContent = formatNumber(from + (to - from) * e);
-    el._raf = p < 1 ? requestAnimationFrame(tick) : null;
-  };
-  el._raf = requestAnimationFrame(tick);
-}
-
-/* ===== 计算与交互（下） ===== */
-/* 阶梯逐级消耗计算 */
-function calculate(board, notify) {
-  const total = updateLive(board);
-  const st = state[board.id];
-  const resultEl = document.getElementById('result-' + board.id);
-
-  if (total <= 0) {
-    if (notify) alert('请输入至少一个大于 0 的数量');
-    if (st.shown) {
-      resultEl.classList.remove('show');
-      st.shown = false;
+  <!-- 积分换算工具 · 作者：巫丢丢 -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="author" content="730巫丢丢">
+  <meta name="description" content="积分换算工具：药榜 / 坐骑榜 / 矿榜 阶梯积分加权换算">
+  <meta name="theme-color" content="#eef2ff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0a0f1e" media="(prefers-color-scheme: dark)">
+  <title>积分换算工具</title>
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🧮</text></svg>">
+  <style>
+    :root {
+      color-scheme: light dark;
+      --page-1: #eef2ff;
+      --page-2: #fdf4ff;
+      --page-3: #fff1f2;
+      --card: #ffffff;
+      --card-2: #f8fafc;
+      --card-3: #eef2f7;
+      --text: #0f172a;
+      --text-2: #334155;
+      --muted: #64748b;
+      --faint: #94a3b8;
+      --line: #e6ebf3;
+      --shadow: 0 18px 50px rgba(15, 23, 42, .10), 0 2px 8px rgba(15, 23, 42, .04);
+      --tabs-bg: rgba(255, 255, 255, .72);
+      --tabs-ring: rgba(255, 255, 255, .9);
+      --orb: .5;
+      --ease: cubic-bezier(.22, 1, .36, 1);
+      --c1: #6366f1;
+      --c2: #ec4899;
+      --bg1: #eef2ff;
+      --bg2: #e0e7ff;
+      --border: rgba(99, 102, 241, .22);
+      --ring-base: rgba(99, 102, 241, .18);
     }
-    return;
-  }
 
-  let remaining = total, result = 0;
-  const steps = [];
-  board.levels.forEach((level, i) => {
-    if (remaining <= 0) return;
-    const used = Math.min(remaining, level.capacity);
-    const gain = used * level.rate;
-    result += gain;
-    remaining -= used;
-    steps.push({ no: i + 1, desc: level.desc, used: used, rate: level.rate, gain: gain });
-  });
+    @media (prefers-color-scheme:dark) {
+      :root {
+        --page-1: #0a0f1e;
+        --page-2: #140f26;
+        --page-3: #1c1024;
+        --card: #141824;
+        --card-2: #1a1f2e;
+        --card-3: #232a3d;
+        --text: #eef2f8;
+        --text-2: #cbd5e1;
+        --muted: #9aa7bd;
+        --faint: #78849c;
+        --line: #272e42;
+        --shadow: 0 18px 50px rgba(0, 0, 0, .5), 0 2px 8px rgba(0, 0, 0, .3);
+        --tabs-bg: rgba(255, 255, 255, .05);
+        --tabs-ring: rgba(255, 255, 255, .08);
+        --orb: .3;
+      }
+    }
 
-  animateNumber(document.getElementById('big-' + board.id), st.result, result);
-  document.getElementById('wan-' + board.id).textContent = (result / 10000).toFixed(2);
-  document.getElementById('chips-' + board.id).innerHTML =
-    '<span class="chip">综合倍率 ' + (result / total * 100).toFixed(2) + '%</span>' +
-    '<span class="chip">总消耗 ' + formatNumber(total) + '</span>';
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent
+    }
 
-  document.getElementById('steps-' + board.id).innerHTML = '<div class="steps-title">计算明细</div>' +
-    steps.map(s => [
-      '<div class="step-item">',
-      '  <div class="step-num">' + s.no + '</div>',
-      '  <div class="step-text">第' + s.no + '阶（' + s.desc + '）：<span class="k">消耗 ' + formatNumber(s.used) + ' × ' + (s.rate * 100) + '% =</span> <b>' + formatNumber(s.gain) + '</b></div>',
-      '</div>'
-    ].join('')).join('');
+    html {
+      -webkit-text-size-adjust: 100%
+    }
 
-  resultEl.classList.add('show');
-  st.result = result;
-  st.shown = true;
-}
+    body {
+      position: relative;
+      overflow-x: hidden;
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding: 46px 20px 64px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(160deg, var(--page-1), var(--page-2) 52%, var(--page-3));
+      background-attachment: fixed;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
 
-/* 复制结果 */
-function copyResult(board, btn) {
-  const st = state[board.id];
-  if (!st || st.result <= 0) return;
-  const text = board.name + '换算结果：' + formatNumber(st.result) + '（即 ' + (st.result / 10000).toFixed(2) + ' 万）';
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      z-index: 0;
+      border-radius: 50%;
+      filter: blur(70px);
+      opacity: var(--orb);
+      pointer-events: none
+    }
 
-  const done = () => {
-    const old = btn.textContent;
-    btn.textContent = '已复制 ✓';
-    btn.classList.add('done');
-    setTimeout(() => { btn.textContent = old; btn.classList.remove('done'); }, 1400);
-  };
+    body::before {
+      width: 340px;
+      height: 340px;
+      left: -110px;
+      top: -80px;
+      background: radial-gradient(circle, rgba(99, 102, 241, .9), transparent 70%);
+      animation: drift1 20s ease-in-out infinite
+    }
 
-  const fallback = () => {
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.setAttribute('readonly', '');
-    ta.style.position = 'fixed';
-    ta.style.top = '-1000px';
-    document.body.appendChild(ta);
-    ta.select();
-    try { document.execCommand('copy'); done(); } catch (e) {}
-    document.body.removeChild(ta);
-  };
+    body::after {
+      width: 380px;
+      height: 380px;
+      right: -130px;
+      bottom: -100px;
+      background: radial-gradient(circle, rgba(236, 72, 153, .75), transparent 70%);
+      animation: drift2 24s ease-in-out infinite
+    }
 
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(done).catch(fallback);
-  } else {
-    fallback();
-  }
-}
+    @keyframes drift1 {
 
-/* ===== 标签切换与初始化 ===== */
-function switchTab(id) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.id === id));
-  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.dataset.id === id));
-  placePill();
-}
+      0%,
+      100% {
+        transform: translate3d(0, 0, 0) scale(1)
+      }
 
-function placePill() {
-  const active = tabsEl.querySelector('.tab.active');
-  if (!active) return;
-  const cs = getComputedStyle(tabsEl);
-  const tr = tabsEl.getBoundingClientRect();
-  const ar = active.getBoundingClientRect();
-  /* 绝对定位的参照系是 .tabs 的 padding box（不含 border），因此只减去边框宽度 */
-  const offX = parseFloat(cs.borderLeftWidth);
-  const offY = parseFloat(cs.borderTopWidth);
-  const a = accent(findBoard(active.dataset.id));
-  pillEl.style.setProperty('--c1', a.c1);
-  pillEl.style.setProperty('--c2', a.c2);
-  pillEl.style.width = ar.width + 'px';
-  pillEl.style.height = ar.height + 'px';
-  pillEl.style.transform = 'translate(' + (ar.left - tr.left - offX) + 'px,' + (ar.top - tr.top - offY) + 'px)';
-}
+      50% {
+        transform: translate3d(26px, 36px, 0) scale(1.1)
+      }
+    }
 
-/* 首次定位（不做动画） */
-requestAnimationFrame(() => {
-  pillEl.style.transition = 'none';
-  placePill();
-  requestAnimationFrame(() => { pillEl.style.transition = ''; });
-});
+    @keyframes drift2 {
 
-let resizeTimer;
-window.addEventListener('resize', () => {
-  clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(placePill, 120);
-});
+      0%,
+      100% {
+        transform: translate3d(0, 0, 0) scale(1)
+      }
 
-if (document.fonts && document.fonts.ready) document.fonts.ready.then(placePill);
+      50% {
+        transform: translate3d(-34px, -26px, 0) scale(1.12)
+      }
+    }
 
-/* 跟随系统深浅色切换 */
-const onThemeChange = () => {
-  document.querySelectorAll('.tab').forEach(el => applyVars(el, findBoard(el.dataset.id)));
-  document.querySelectorAll('.panel').forEach(el => applyVars(el, findBoard(el.dataset.id)));
-  placePill();
-};
-if (mqDark.addEventListener) mqDark.addEventListener('change', onThemeChange);
-else if (mqDark.addListener) mqDark.addListener(onThemeChange);
-</script>
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 640px;
+      margin: 0 auto
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 26px
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 13px;
+      margin-bottom: 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .5px;
+      color: var(--muted);
+      background: var(--tabs-bg);
+      border: 1px solid var(--tabs-ring);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px)
+    }
+
+    .badge i {
+      display: block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--c1), var(--c2))
+    }
+
+    header h1 {
+      font-size: 30px;
+      line-height: 1.25;
+      letter-spacing: .5px;
+      margin-bottom: 10px;
+      background: linear-gradient(120deg, #6366f1, #a855f7 45%, #ec4899);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent
+    }
+
+    header p {
+      font-size: 14px;
+      color: var(--muted);
+      letter-spacing: .3px
+    }
+
+    .tabs {
+      position: relative;
+      display: flex;
+      gap: 6px;
+      padding: 6px;
+      margin-bottom: 18px;
+      border-radius: 18px;
+      background: var(--tabs-bg);
+      border: 1px solid var(--tabs-ring);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 8px 28px rgba(15, 23, 42, .07)
+    }
+
+    .tab-pill {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 0;
+      height: 0;
+      border-radius: 13px;
+      --ring: rgba(99, 102, 241, .32);
+      background: linear-gradient(135deg, var(--c1), var(--c2));
+      box-shadow: 0 2px 8px var(--ring);
+      transition: transform .42s var(--ease), width .42s var(--ease), background .35s linear, box-shadow .35s linear;
+      will-change: transform, width
+    }
+
+    .tab {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 12px 6px;
+      border: 0;
+      border-radius: 13px;
+      background: transparent;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color .25s
+    }
+
+    /* 触屏设备没有真正的 hover，:hover 会“粘”在元素上；用 hover:hover 只在有鼠标时生效 */
+    @media (hover:hover) {
+      .tab:hover {
+        color: var(--text-2)
+      }
+
+      .ghost-btn:hover {
+        color: var(--text);
+        border-color: var(--c1);
+        background: var(--tint-1)
+      }
+
+      .copy-btn:hover {
+        background: var(--tint-1);
+        transform: translateY(-1px)
+      }
+
+      .calc-btn:hover {
+        transform: translateY(-2px);
+        filter: saturate(1.08);
+        box-shadow: 0 16px 34px var(--ring)
+      }
+
+      .calc-btn:hover::after {
+        left: 120%
+      }
+
+      .row-btn:hover {
+        background: var(--tint-1)
+      }
+    }
+
+    .tab.active {
+      color: #fff
+    }
+
+    .tab .ico {
+      font-size: 16px;
+      line-height: 1
+    }
+
+    .panel {
+      display: none
+    }
+
+    .panel.active {
+      display: block;
+      animation: rise .4s var(--ease)
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(12px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    .card {
+      position: relative;
+      overflow: hidden;
+      padding: 26px;
+      border-radius: 22px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow)
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 110px;
+      pointer-events: none;
+      background: linear-gradient(180deg, var(--tint-1), transparent)
+    }
+
+    .card>* {
+      position: relative
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px
+    }
+
+    .section-title {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12.5px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      color: var(--text-2)
+    }
+
+    .section-title::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--line)
+    }
+
+    .ghost-btn {
+      padding: 6px 13px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--card-2);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color .2s, border-color .2s, background .2s, transform .15s
+    }
+
+    .ghost-btn:active {
+      transform: scale(.96)
+    }
+
+    .item-row {
+      display: grid;
+      grid-template-columns: 82px 1fr auto;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+      padding: 10px 14px;
+      border-radius: 14px;
+      background: var(--card-2);
+      border: 1.5px solid var(--line);
+      transition: border-color .2s, background .2s, box-shadow .2s, transform .2s
+    }
+
+    .item-row:focus-within {
+      border-color: var(--c1);
+      background: var(--card);
+      box-shadow: 0 0 0 4px var(--ring);
+      transform: translateY(-1px)
+    }
+
+    .item-name {
+      overflow: hidden;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-2);
+      white-space: nowrap;
+      text-overflow: ellipsis
+    }
+
+    .item-mult {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--c1);
+      letter-spacing: .3px;
+      background: var(--tint-1);
+      border: 1px solid var(--tint-line);
+      white-space: nowrap
+    }
+
+    .item-row input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid var(--line);
+      border-radius: 10px;
+      background: var(--card);
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+      outline: none;
+      -moz-appearance: textfield;
+      transition: border-color .2s, box-shadow .2s
+    }
+
+    .item-row input::placeholder {
+      color: var(--faint);
+      font-weight: 500
+    }
+
+    .item-row input:focus {
+      border-color: var(--c1);
+      box-shadow: 0 0 0 4px var(--ring)
+    }
+
+    .item-row input::-webkit-outer-spin-button,
+    .item-row input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0
+    }
+
+    .total-display {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-top: 16px;
+      padding: 16px 20px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--tint-1), var(--tint-2));
+      border: 1.5px solid var(--tint-line)
+    }
+
+    .total-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-2);
+      letter-spacing: .6px
+    }
+
+    .total-value {
+      font-size: 25px;
+      font-weight: 800;
+      line-height: 1.2;
+      color: var(--c1);
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+      word-break: break-all
+    }
+
+    .tier {
+      margin-top: 14px
+    }
+
+    .tier-bar {
+      height: 8px;
+      border-radius: 999px;
+      background: var(--card-3);
+      border: 1px solid var(--line);
+      overflow: hidden
+    }
+
+    .tier-fill {
+      height: 100%;
+      width: 0;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--c1), var(--c2));
+      transition: width .5s var(--ease)
+    }
+
+    .tier-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted)
+    }
+
+    .tier-meta em {
+      font-style: normal;
+      font-weight: 800;
+      color: var(--c1)
+    }
+
+    .calc-btn {
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+      margin-top: 16px;
+      padding: 16px;
+      border: 0;
+      border-radius: 14px;
+      font-family: inherit;
+      font-size: 16.5px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      color: #fff;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--c1), var(--c2));
+      box-shadow: 0 10px 26px var(--ring);
+      transition: transform .2s var(--ease), box-shadow .25s, filter .25s
+    }
+
+    .calc-btn::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -60%;
+      width: 45%;
+      height: 100%;
+      background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .5), transparent);
+      transform: skewX(-18deg);
+      transition: left .6s var(--ease)
+    }
+
+    .calc-btn:active {
+      transform: translateY(0) scale(.995)
+    }
+
+    .result {
+      margin-top: 22px;
+      display: none
+    }
+
+    .result.show {
+      display: block;
+      animation: rise .45s var(--ease)
+    }
+
+    .result-box {
+      padding: 24px 22px;
+      border-radius: 18px;
+      text-align: center;
+      background: linear-gradient(135deg, var(--tint-1), var(--tint-2));
+      border: 1px solid var(--tint-line)
+    }
+
+    .result-label {
+      margin-bottom: 10px;
+      font-size: 12.5px;
+      font-weight: 600;
+      letter-spacing: 1.2px;
+      color: var(--muted)
+    }
+
+    .result-big {
+      font-size: 32px;
+      font-weight: 800;
+      line-height: 1.15;
+      color: var(--c1);
+      font-variant-numeric: tabular-nums;
+      word-break: break-all
+    }
+
+    .result-sub {
+      margin-top: 8px;
+      font-size: 14.5px;
+      font-weight: 600;
+      color: var(--text-2)
+    }
+
+    .result-sub span {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--c1)
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 14px
+    }
+
+    .chip {
+      padding: 5px 11px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--c1);
+      letter-spacing: .3px;
+      background: var(--card);
+      border: 1px solid var(--tint-line)
+    }
+
+    .copy-btn {
+      margin-top: 16px;
+      padding: 10px 20px;
+      border-radius: 999px;
+      border: 1.5px solid var(--tint-line);
+      background: var(--card);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .5px;
+      color: var(--c1);
+      cursor: pointer;
+      transition: background .2s, transform .2s, color .2s, border-color .2s
+    }
+
+    .copy-btn.done {
+      color: #fff;
+      border-color: transparent;
+      background: linear-gradient(135deg, var(--c1), var(--c2))
+    }
+
+    .steps {
+      margin-top: 16px;
+      padding: 16px 18px;
+      border-radius: 16px;
+      background: var(--card-2);
+      border: 1px solid var(--line)
+    }
+
+    .steps-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      font-size: 12.5px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      color: var(--text-2)
+    }
+
+    .steps-title::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--line)
+    }
+
+    .step-item {
+      display: flex;
+      gap: 10px;
+      padding: 8px 0;
+      font-size: 13px;
+      line-height: 1.65;
+      color: var(--text-2)
+    }
+
+    .step-item+.step-item {
+      border-top: 1px dashed var(--line)
+    }
+
+    .step-num {
+      flex: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      margin-top: 1px;
+      border-radius: 50%;
+      font-size: 11px;
+      font-weight: 800;
+      color: #fff;
+      background: linear-gradient(135deg, var(--c1), var(--c2));
+      box-shadow: 0 3px 10px var(--ring)
+    }
+
+    .step-text {
+      flex: 1
+    }
+
+    .step-text b {
+      font-weight: 800;
+      color: var(--c1);
+      font-variant-numeric: tabular-nums
+    }
+
+    .step-text .k {
+      color: var(--muted);
+      font-variant-numeric: tabular-nums
+    }
+
+    /* ===== 继续换算（在已有积分上续算） ===== */
+    .cont-card {
+      margin-top: 22px
+    }
+
+    .row-btn {
+      flex: none;
+      padding: 9px 12px;
+      border-radius: 10px;
+      border: 1.5px solid var(--tint-line);
+      background: var(--card-2);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .3px;
+      color: var(--c1);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background .2s, color .2s, border-color .2s, transform .15s
+    }
+
+    .row-btn:active {
+      transform: scale(.96)
+    }
+
+    .row-btn.done {
+      color: #fff;
+      border-color: transparent;
+      background: linear-gradient(135deg, var(--c1), var(--c2))
+    }
+
+    .cont-note {
+      margin-top: 12px;
+      font-size: 12px;
+      line-height: 1.7;
+      color: var(--muted);
+      text-align: center
+    }
+
+    .cont-note b {
+      font-weight: 800;
+      color: var(--c1);
+      font-variant-numeric: tabular-nums
+    }
+
+    .footer-note {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      margin-top: 26px;
+      font-size: 12px;
+      color: var(--faint);
+      text-align: center
+    }
+
+    .footer-note .author {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      opacity: .55
+    }
+
+    .tab,
+    .panel {
+      --tint-1: var(--bg1);
+      --tint-2: var(--bg2);
+      --tint-line: var(--border);
+      --ring: var(--ring-base)
+    }
+
+    @supports (color:color-mix(in srgb, red 50%, transparent)) {
+
+      .tab,
+      .panel {
+        --tint-1: color-mix(in srgb, var(--c1) 10%, transparent);
+        --tint-2: color-mix(in srgb, var(--c1) 19%, transparent);
+        --tint-line: color-mix(in srgb, var(--c1) 30%, transparent);
+        --ring: color-mix(in srgb, var(--c1) 22%, transparent)
+      }
+
+      .tab-pill {
+        --ring: color-mix(in srgb, var(--c1) 42%, transparent)
+      }
+    }
+
+    @media (max-width:520px) {
+
+      /* iOS Safari：地址栏随滚动收缩时 fixed 背景会抖动/错位，改 scroll */
+      /* 底部留白叠加安全区，避免刘海机型横屏时被 Home 条压住 */
+      body {
+        padding: 32px 14px calc(48px + env(safe-area-inset-bottom));
+        background-attachment: scroll
+      }
+
+      header h1 {
+        font-size: 24px
+      }
+
+      .card {
+        padding: 20px 18px;
+        border-radius: 20px
+      }
+
+      .result-big {
+        font-size: 26px
+      }
+
+      .total-value {
+        font-size: 21px
+      }
+
+      .tab {
+        padding: 12px 4px;
+        font-size: 13.5px;
+        gap: 4px
+      }
+
+      .tab .ico {
+        font-size: 14px
+      }
+
+      .item-row {
+        grid-template-columns: 64px 1fr auto;
+        gap: 8px;
+        padding: 8px 10px
+      }
+
+      .item-name {
+        font-size: 13px
+      }
+
+      .item-mult {
+        padding: 3px 8px;
+        font-size: 11px
+      }
+
+      /* 输入框字号必须 ≥16px，否则 iOS 聚焦时会自动放大整页；同时加高到约 44px 便于点按 */
+      .item-row input {
+        padding: 12px;
+        font-size: 16px
+      }
+
+      .ghost-btn {
+        padding: 12px 16px;
+        font-size: 12.5px
+      }
+
+      .row-btn {
+        padding: 11px 10px;
+        font-size: 11.5px
+      }
+
+      .tier-meta {
+        font-size: 11px
+      }
+
+      .steps {
+        padding: 14px
+      }
+    }
+
+    @media (max-width:380px) {
+      .tab .ico {
+        display: none
+      }
+    }
+
+    @media (prefers-reduced-motion:reduce) {
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .001ms !important
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <div class="badge"><i></i>阶梯积分 · 自动加权换算</div>
+      <h1>积分换算工具</h1>
+      <p>输入数量即时换算，也可在已有积分上继续累加</p>
+    </header>
+
+    <div class="tabs" id="tabs"><span class="tab-pill" id="tabPill"></span></div>
+    <div id="panels"></div>
+
+    <div class="footer-note">
+      <span>结果保留两位小数 · 按阶梯逐级消耗 · 支持在已有积分上续算</span>
+      <span class="author" title="作者：730巫丢丢">730巫丢丢</span>
+    </div>
+  </div>
+
+  <script>
+    /* ===== 榜单数据（作者：巫丢丢） ===== */
+    const boards = [
+      {
+        id: 'yao', name: '药榜', icon: '🌿',
+        c1: '#10b981', c2: '#059669', c1d: '#34d399', c2d: '#10b981',
+        bg1: '#ecfdf5', bg2: '#d1fae5', border: 'rgba(16,185,129,.22)', ring: 'rgba(16,185,129,.2)',
+        items: [
+          { name: '普通', mult: 1 },
+          { name: '人参果', mult: 25 }
+        ],
+        levels: [
+          { capacity: 1200000, rate: 1.0, desc: '0~120万' },
+          { capacity: 500000, rate: 0.8, desc: '120~160万' },
+          { capacity: 1333333.3333333333, rate: 0.6, desc: '160~240万' },
+          { capacity: 2000000, rate: 0.4, desc: '240~320万' },
+          { capacity: 4000000, rate: 0.2, desc: '320~400万' },
+          { capacity: 8000000, rate: 0.1, desc: '400~480万' },
+          { capacity: Infinity, rate: 0.05, desc: '480~∞' }
+        ]
+      },
+      {
+        id: 'cao', name: '坐骑榜', icon: '🐎',
+        c1: '#f59e0b', c2: '#d97706', c1d: '#fbbf24', c2d: '#f59e0b',
+        bg1: '#fffbeb', bg2: '#fef3c7', border: 'rgba(245,158,11,.22)', ring: 'rgba(245,158,11,.2)',
+        items: [
+          { name: '马草', mult: 2 },
+          { name: '驭灵', mult: 5 }
+        ],
+        levels: [
+          { capacity: 30000, rate: 1.0, desc: '0~3万' },
+          { capacity: 12500, rate: 0.8, desc: '3~4万' },
+          { capacity: 33333.3333333333, rate: 0.6, desc: '4~6万' },
+          { capacity: 50000, rate: 0.4, desc: '6~8万' },
+          { capacity: 100000, rate: 0.2, desc: '8~10万' },
+          { capacity: 200000, rate: 0.1, desc: '10~12万' },
+          { capacity: Infinity, rate: 0.05, desc: '12~∞' }
+        ]
+      },
+      {
+        id: 'kuang', name: '矿榜', icon: '⛏️',
+        c1: '#6366f1', c2: '#4f46e5', c1d: '#818cf8', c2d: '#6366f1',
+        bg1: '#eef2ff', bg2: '#e0e7ff', border: 'rgba(99,102,241,.22)', ring: 'rgba(99,102,241,.2)',
+        items: [
+          { name: '普通', mult: 1 },
+          { name: '高级', mult: 10 },
+          { name: '进阶', mult: 25 }
+        ],
+        levels: [
+          { capacity: 1500000, rate: 1.0, desc: '0~150万' },
+          { capacity: 625000, rate: 0.8, desc: '150~200万' },
+          { capacity: 1666666.6666666667, rate: 0.6, desc: '200~300万' },
+          { capacity: 2500000, rate: 0.4, desc: '300~400万' },
+          { capacity: 5000000, rate: 0.2, desc: '400~500万' },
+          { capacity: 10000000, rate: 0.1, desc: '500~600万' },
+          { capacity: Infinity, rate: 0.05, desc: '600~∞' }
+        ]
+      }
+    ];
+
+    /* ===== 渲染 ===== */
+    const tabsEl = document.getElementById('tabs');
+    const panelsEl = document.getElementById('panels');
+    const pillEl = document.getElementById('tabPill');
+    const mqDark = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : { matches: false };
+    const mqReduce = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+    const state = {};
+
+    function findBoard(id) {
+      return boards.find(b => b.id === id);
+    }
+
+    function panelOf(board) {
+      return panelsEl.querySelector('.panel[data-id="' + board.id + '"]');
+    }
+
+    /* 深色模式下换成更亮的主色，保证可读性 */
+    function accent(board) {
+      return mqDark.matches ? { c1: board.c1d, c2: board.c2d } : { c1: board.c1, c2: board.c2 };
+    }
+
+    function applyVars(el, board) {
+      const a = accent(board);
+      el.style.setProperty('--c1', a.c1);
+      el.style.setProperty('--c2', a.c2);
+      el.style.setProperty('--bg1', board.bg1);
+      el.style.setProperty('--bg2', board.bg2);
+      el.style.setProperty('--border', board.border);
+      el.style.setProperty('--ring-base', board.ring);
+    }
+
+    boards.forEach((b, i) => {
+      /* baseAuto：已有积分默认跟随上方换算结果；contAdded/contResult：续算区状态 */
+      state[b.id] = { total: 0, result: 0, shown: false, baseAuto: true, base: 0, contAdded: 0, contResult: 0, contShown: false };
+
+      /* --- 标签 --- */
+      const tab = document.createElement('button');
+      tab.type = 'button';
+      tab.className = 'tab' + (i === 0 ? ' active' : '');
+      tab.dataset.id = b.id;
+      applyVars(tab, b);
+      tab.innerHTML = '<span class="ico">' + b.icon + '</span><span>' + b.name + '</span>';
+      tab.addEventListener('click', () => switchTab(b.id));
+      tabsEl.appendChild(tab);
+
+      /* --- 面板 --- */
+      const panel = document.createElement('div');
+      panel.className = 'panel' + (i === 0 ? ' active' : '');
+      panel.dataset.id = b.id;
+      applyVars(panel, b);
+
+      const itemsHTML = b.items.map((item, idx) => [
+        '<div class="item-row">',
+        '  <span class="item-name">' + item.name + '</span>',
+        '  <input type="number" class="item-input" data-idx="' + idx + '" placeholder="0" step="any" min="0" inputmode="decimal" enterkeyhint="done" aria-label="' + item.name + '数量">',
+        '  <span class="item-mult">× ' + item.mult + '</span>',
+        '</div>'
+      ].join('\n')).join('');
+
+      /* 续算区：继续消耗的数量行 */
+      const contItemsHTML = b.items.map((item, idx) => [
+        '<div class="item-row">',
+        '  <span class="item-name">' + item.name + '</span>',
+        '  <input type="number" class="cont-input" data-idx="' + idx + '" placeholder="0" step="any" min="0" inputmode="decimal" enterkeyhint="done" aria-label="继续消耗的' + item.name + '数量">',
+        '  <span class="item-mult">× ' + item.mult + '</span>',
+        '</div>'
+      ].join('')).join('');
+
+      /* 续算卡片：已有积分 + 继续消耗 → 最终积分 */
+      const contCardHTML = [
+        '<div class="card cont-card">',
+        '  <div class="section-head">',
+        '    <div class="section-title">在已有积分上继续换算</div>',
+        '    <button type="button" class="ghost-btn" data-cont-clear>清空</button>',
+        '  </div>',
+        '  <div class="item-row">',
+        '    <span class="item-name">已有积分</span>',
+        '    <input type="number" class="base-points" placeholder="0" step="any" min="0" inputmode="decimal" enterkeyhint="done" aria-label="已有积分">',
+        '    <button type="button" class="row-btn" data-use-result>取上方结果</button>',
+        '  </div>',
+        contItemsHTML,
+        '  <div class="total-display">',
+        '    <span class="total-label">新增加权总数</span>',
+        '    <span class="total-value" id="cont-total-' + b.id + '">0.00</span>',
+        '  </div>',
+        '  <div class="tier">',
+        '    <div class="tier-bar"><div class="tier-fill" id="cont-fill-' + b.id + '"></div></div>',
+        '    <div class="tier-meta">',
+        '      <span id="cont-tier-' + b.id + '">等待输入…</span>',
+        '      <span id="cont-tier-next-' + b.id + '"></span>',
+        '    </div>',
+        '  </div>',
+        '  <button type="button" class="calc-btn" id="cont-btn-' + b.id + '">继续换算</button>',
+        '  <div class="result" id="cont-result-' + b.id + '">',
+        '    <div class="result-box">',
+        '      <div class="result-label">最终积分</div>',
+        '      <div class="result-big" id="cont-big-' + b.id + '">0.00</div>',
+        '      <div class="result-sub">即 <span id="cont-wan-' + b.id + '">0.00</span> 万</div>',
+        '      <div class="chips" id="cont-chips-' + b.id + '"></div>',
+        '      <button type="button" class="copy-btn" data-cont-copy>复制结果</button>',
+        '    </div>',
+        '    <div class="steps" id="cont-steps-' + b.id + '"></div>',
+        '  </div>',
+        '  <div class="cont-note" id="cont-note-' + b.id + '"></div>',
+        '</div>'
+      ].join('');
+
+      panel.innerHTML = [
+        '<div class="card">',
+        '  <div class="section-head">',
+        '    <div class="section-title">输入数量</div>',
+        '    <button type="button" class="ghost-btn" data-clear>清空</button>',
+        '  </div>',
+        itemsHTML,
+        '  <div class="total-display">',
+        '    <span class="total-label">总数</span>',
+        '    <span class="total-value" id="total-' + b.id + '">0.00</span>',
+        '  </div>',
+        '  <div class="tier">',
+        '    <div class="tier-bar"><div class="tier-fill" id="fill-' + b.id + '"></div></div>',
+        '    <div class="tier-meta">',
+        '      <span id="tier-' + b.id + '">等待输入…</span>',
+        '      <span id="tier-next-' + b.id + '"></span>',
+        '    </div>',
+        '  </div>',
+        '  <button type="button" class="calc-btn" id="btn-' + b.id + '">开始换算</button>',
+        '  <div class="result" id="result-' + b.id + '">',
+        '    <div class="result-box">',
+        '      <div class="result-label">换算结果</div>',
+        '      <div class="result-big" id="big-' + b.id + '">0.00</div>',
+        '      <div class="result-sub">即 <span id="wan-' + b.id + '">0.00</span> 万</div>',
+        '      <div class="chips" id="chips-' + b.id + '"></div>',
+        '      <button type="button" class="copy-btn" data-copy>复制结果</button>',
+        '    </div>',
+        '    <div class="steps" id="steps-' + b.id + '"></div>',
+        '  </div>',
+        '</div>'
+      ].join('\n');
+      panel.insertAdjacentHTML('beforeend', contCardHTML);
+      panelsEl.appendChild(panel);
+
+      /* --- 事件 --- */
+      panel.querySelectorAll('.item-input').forEach(inp => {
+        inp.addEventListener('input', () => {
+          updateLive(b);
+          if (state[b.id].shown) calculate(b, false);
+        });
+        inp.addEventListener('keydown', e => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            calculate(b, true);
+          }
+        });
+      });
+
+      panel.querySelector('[data-clear]').addEventListener('click', () => {
+        const st = state[b.id];
+        panel.querySelectorAll('.item-input').forEach(inp => { inp.value = ''; });
+        st.total = 0;
+        st.result = 0;
+        st.shown = false;
+        document.getElementById('result-' + b.id).classList.remove('show');
+        /* 已有积分若是跟着上方结果自动填充的，一并清空 */
+        if (st.baseAuto) {
+          const baseEl = panel.querySelector('.base-points');
+          if (baseEl) baseEl.value = '';
+          st.base = 0;
+        }
+        updateLive(b);
+        updateLiveContinue(b);
+        const first = panel.querySelector('.item-input');
+        if (first) first.focus();
+      });
+
+      document.getElementById('btn-' + b.id).addEventListener('click', () => calculate(b, true));
+      panel.querySelector('[data-copy]').addEventListener('click', function () { copyResult(b, this); });
+
+      /* --- 续算区事件 --- */
+      const baseEl = panel.querySelector('.base-points');
+      const useResultBtn = panel.querySelector('[data-use-result]');
+
+      baseEl.addEventListener('input', () => {
+        /* 用户一旦手动编辑过，就以输入框为准，不再跟随上方结果 */
+        state[b.id].baseAuto = false;
+        updateLiveContinue(b);
+        if (state[b.id].contShown) calculateContinue(b, false);
+      });
+      baseEl.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          calculateContinue(b, true);
+        }
+      });
+
+      panel.querySelectorAll('.cont-input').forEach(inp => {
+        inp.addEventListener('input', () => {
+          updateLiveContinue(b);
+          if (state[b.id].contShown) calculateContinue(b, false);
+        });
+        inp.addEventListener('keydown', e => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            calculateContinue(b, true);
+          }
+        });
+      });
+
+      useResultBtn.addEventListener('click', () => {
+        const st = state[b.id];
+        if (!(st.result > 0)) {
+          alert('请先在上方完成一次换算');
+          return;
+        }
+        baseEl.value = st.result.toFixed(2);
+        /* 取用上方结果后继续保持跟随，上方结果变化时自动同步 */
+        st.baseAuto = true;
+        updateLiveContinue(b);
+        if (st.contShown) calculateContinue(b, false);
+        flashBtn(useResultBtn, '已填入 ✓');
+      });
+
+      panel.querySelector('[data-cont-clear]').addEventListener('click', () => {
+        const st = state[b.id];
+        baseEl.value = '';
+        panel.querySelectorAll('.cont-input').forEach(inp => { inp.value = ''; });
+        /* 清空后以输入框为准：为空即视为 0 分，不再沿用上方结果 */
+        st.baseAuto = false;
+        st.base = 0;
+        st.contAdded = 0;
+        st.contResult = 0;
+        st.contShown = false;
+        document.getElementById('cont-result-' + b.id).classList.remove('show');
+        updateLiveContinue(b);
+      });
+
+      document.getElementById('cont-btn-' + b.id).addEventListener('click', () => calculateContinue(b, true));
+      panel.querySelector('[data-cont-copy]').addEventListener('click', function () { copyContinueResult(b, this); });
+
+      updateLive(b);
+      updateLiveContinue(b);
+    });
+
+    /* ===== 计算与交互 ===== */
+    function formatNumber(num) {
+      return num.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    /* 加权总数：数量 × 各自倍率 */
+    function getWeightedTotal(board) {
+      let total = 0;
+      panelOf(board).querySelectorAll('.item-input').forEach(inp => {
+        const v = parseFloat(inp.value);
+        if (isFinite(v) && v > 0) total += v * board.items[Number(inp.dataset.idx)].mult;
+      });
+      return total;
+    }
+
+    /* ===== 纯计算函数（无 DOM 依赖，便于单独校验） ===== */
+    /* 阶梯逐级消耗：返回总积分与每一阶的消耗明细 */
+    function tierCompute(board, total) {
+      let remaining = total, result = 0;
+      const steps = [];
+      board.levels.forEach((level, i) => {
+        if (remaining <= 0) return;
+        const used = Math.min(remaining, level.capacity);
+        const gain = used * level.rate;
+        result += gain;
+        remaining -= used;
+        steps.push({ no: i + 1, desc: level.desc, used: used, rate: level.rate, gain: gain });
+      });
+      return { result: result, steps: steps };
+    }
+
+    /* 由已有积分定位到它所在的阶梯与阶内位置（阶梯↔积分是分段线性的，可反推） */
+    function pointsToAmount(board, points) {
+      const p = Math.max(0, points || 0);
+      const eps = 1e-9;
+      let cumPoints = 0, cumAmount = 0;
+      for (let i = 0; i < board.levels.length; i++) {
+        const lv = board.levels[i];
+        const cap = lv.capacity;
+        const gain = isFinite(cap) ? cap * lv.rate : Infinity;
+        const limit = cumPoints + gain;
+        if (p <= limit + eps) {
+          const rate = lv.rate > 0 ? lv.rate : 1;
+          const used = Math.min(Math.max(0, p - cumPoints) / rate, isFinite(cap) ? cap : Infinity);
+          return { amount: cumAmount + used, tierIdx: i, tierUsed: used };
+        }
+        if (!isFinite(cap)) break;
+        cumPoints = limit;
+        cumAmount += cap;
+      }
+      return { amount: cumAmount, tierIdx: board.levels.length - 1, tierUsed: 0 };
+    }
+
+    /* 从「第 tierIdx 阶已消耗 tierUsed」的位置出发，继续消耗 amount，返回跨阶明细 */
+    function continueSteps(board, tierIdx, tierUsed, amount) {
+      const steps = [];
+      if (!(amount > 0)) return steps;
+      let remaining = amount;
+      for (let i = tierIdx; i < board.levels.length && remaining > 1e-9; i++) {
+        const lv = board.levels[i];
+        const usedInTier = i === tierIdx ? tierUsed : 0;
+        const room = isFinite(lv.capacity) ? Math.max(0, lv.capacity - usedInTier) : Infinity;
+        const used = Math.min(remaining, room);
+        if (used > 1e-9) {
+          steps.push({ no: i + 1, desc: lv.desc, used: used, rate: lv.rate, gain: used * lv.rate });
+          remaining -= used;
+        }
+      }
+      return steps;
+    }
+    /* ===== 纯计算函数结束 ===== */
+
+    /* 判断总数落在第几阶（阶的阈值 = 各阶可消耗量累加） */
+    function computeTier(board, total) {
+      const caps = board.levels.map(l => l.capacity);
+      let cum = 0, idx = -1, upper = Infinity;
+      for (let i = 0; i < caps.length; i++) {
+        cum += caps[i];
+        if (total <= cum) { idx = i; upper = cum; break; }
+      }
+      if (idx === -1) { idx = caps.length - 1; upper = Infinity; }
+      let lower = 0;
+      for (let i = 0; i < idx; i++) lower += caps[i];
+      const infinite = !isFinite(caps[idx]);
+      const pct = infinite ? 1 : (upper > lower ? Math.min(1, Math.max(0, (total - lower) / (upper - lower))) : 0);
+      return { idx: idx, lower: lower, upper: upper, infinite: infinite, pct: pct, distance: infinite ? null : Math.max(0, upper - total) };
+    }
+
+    /* 实时刷新总数与档位进度 */
+    function updateLive(board) {
+      const total = getWeightedTotal(board);
+      document.getElementById('total-' + board.id).textContent = formatNumber(total);
+
+      const fillEl = document.getElementById('fill-' + board.id);
+      const metaEl = document.getElementById('tier-' + board.id);
+      const nextEl = document.getElementById('tier-next-' + board.id);
+
+      if (total <= 0) {
+        fillEl.style.width = '0%';
+        metaEl.textContent = '等待输入…';
+        nextEl.textContent = '';
+      } else {
+        const t = computeTier(board, total);
+        const lv = board.levels[t.idx];
+        fillEl.style.width = (t.pct * 100).toFixed(2) + '%';
+        metaEl.innerHTML = '第 ' + (t.idx + 1) + ' 阶 · ' + lv.desc + ' <em>×' + (lv.rate * 100) + '%</em>';
+        nextEl.textContent = t.infinite ? '已达最高阶' : '距下一阶还需 ' + formatNumber(t.distance);
+      }
+
+      state[board.id].total = total;
+      return total;
+    }
+
+    /* 续算区：继续消耗数量的加权总数 */
+    function getContinueWeightedTotal(board) {
+      let total = 0;
+      panelOf(board).querySelectorAll('.cont-input').forEach(inp => {
+        const v = parseFloat(inp.value);
+        if (isFinite(v) && v > 0) total += v * board.items[Number(inp.dataset.idx)].mult;
+      });
+      return total;
+    }
+
+    /* 已有积分：自动跟随上方结果时用精确值，手动填写时取输入值 */
+    function getBasePoints(board) {
+      const st = state[board.id];
+      if (st.baseAuto) return st.result > 0 ? st.result : 0;
+      const v = parseFloat(panelOf(board).querySelector('.base-points').value);
+      return isFinite(v) && v > 0 ? v : 0;
+    }
+
+    /* 实时刷新续算区：新增加权总数 + 合计后所处的档位 */
+    function updateLiveContinue(board) {
+      const st = state[board.id];
+      const added = getContinueWeightedTotal(board);
+      const basePoints = getBasePoints(board);
+      const baseInfo = pointsToAmount(board, basePoints);
+      const combined = baseInfo.amount + added;
+
+      st.base = basePoints;
+      st.contAdded = added;
+
+      document.getElementById('cont-total-' + board.id).textContent = formatNumber(added);
+
+      const fillEl = document.getElementById('cont-fill-' + board.id);
+      const metaEl = document.getElementById('cont-tier-' + board.id);
+      const nextEl = document.getElementById('cont-tier-next-' + board.id);
+
+      if (combined <= 0) {
+        fillEl.style.width = '0%';
+        metaEl.textContent = '等待输入…';
+        nextEl.textContent = '';
+      } else {
+        const t = computeTier(board, combined);
+        const lv = board.levels[t.idx];
+        fillEl.style.width = (t.pct * 100).toFixed(2) + '%';
+        metaEl.innerHTML = '合计 ' + formatNumber(combined) + ' · 第 ' + (t.idx + 1) + ' 阶 <em>×' + (lv.rate * 100) + '%</em>';
+        nextEl.textContent = t.infinite ? '已达最高阶' : '距下一阶还需 ' + formatNumber(t.distance);
+      }
+
+      const noteEl = document.getElementById('cont-note-' + board.id);
+      if (basePoints > 0) {
+        noteEl.innerHTML = '已有积分 <b>' + formatNumber(basePoints) + '</b> 相当于已消耗 <b>' + formatNumber(baseInfo.amount) + '</b>，继续消耗将从第 <b>' + (baseInfo.tierIdx + 1) + '</b> 阶接着往后算。';
+      } else {
+        noteEl.textContent = '可直接填写已有积分，也可以先在上方换算后点「取上方结果」。';
+      }
+
+      return { basePoints: basePoints, added: added, combined: combined, baseInfo: baseInfo };
+    }
+
+    /* 数字滚动动画 */
+    function animateNumber(el, from, to) {
+      if (el._raf) cancelAnimationFrame(el._raf);
+      if (mqReduce.matches || !isFinite(from)) {
+        el.textContent = formatNumber(to);
+        return;
+      }
+      const dur = 520, t0 = performance.now();
+      const tick = now => {
+        const p = Math.min(1, (now - t0) / dur);
+        const e = 1 - Math.pow(1 - p, 3);
+        el.textContent = formatNumber(from + (to - from) * e);
+        el._raf = p < 1 ? requestAnimationFrame(tick) : null;
+      };
+      el._raf = requestAnimationFrame(tick);
+    }
+
+    /* ===== 计算与交互（下） ===== */
+    /* 阶梯逐级消耗计算 */
+    function calculate(board, notify) {
+      const total = updateLive(board);
+      const st = state[board.id];
+      const resultEl = document.getElementById('result-' + board.id);
+
+      if (total <= 0) {
+        if (notify) alert('请输入至少一个大于 0 的数量');
+        if (st.shown) {
+          resultEl.classList.remove('show');
+          st.shown = false;
+        }
+        return;
+      }
+
+      const computed = tierCompute(board, total);
+      const result = computed.result;
+      const steps = computed.steps;
+
+      animateNumber(document.getElementById('big-' + board.id), st.result, result);
+      document.getElementById('wan-' + board.id).textContent = (result / 10000).toFixed(2);
+      document.getElementById('chips-' + board.id).innerHTML =
+        '<span class="chip">综合倍率 ' + (result / total * 100).toFixed(2) + '%</span>' +
+        '<span class="chip">总消耗 ' + formatNumber(total) + '</span>';
+
+      document.getElementById('steps-' + board.id).innerHTML = '<div class="steps-title">计算明细</div>' +
+        steps.map(s => [
+          '<div class="step-item">',
+          '  <div class="step-num">' + s.no + '</div>',
+          '  <div class="step-text">第' + s.no + '阶（' + s.desc + '）：<span class="k">消耗 ' + formatNumber(s.used) + ' × ' + (s.rate * 100) + '% =</span> <b>' + formatNumber(s.gain) + '</b></div>',
+          '</div>'
+        ].join('')).join('');
+
+      resultEl.classList.add('show');
+      st.result = result;
+      st.shown = true;
+
+      /* 已有积分默认跟随上方换算结果，并同步刷新续算区 */
+      const baseEl = panelOf(board).querySelector('.base-points');
+      if (st.baseAuto && baseEl) {
+        baseEl.value = result.toFixed(2);
+        if (st.contShown) calculateContinue(board, false);
+        else updateLiveContinue(board);
+      }
+    }
+
+    /* ===== 续算：在已有积分的基础上继续消耗 ===== */
+    function calculateContinue(board, notify) {
+      const live = updateLiveContinue(board);
+      const st = state[board.id];
+      const resultEl = document.getElementById('cont-result-' + board.id);
+      const basePoints = live.basePoints;
+      const added = live.added;
+
+      if (basePoints <= 0 && added <= 0) {
+        if (notify) alert('请先填写已有积分，或输入继续消耗的数量');
+        if (st.contShown) {
+          resultEl.classList.remove('show');
+          st.contShown = false;
+        }
+        return;
+      }
+
+      /* 从已有积分所在的阶内位置继续消耗新增数量 */
+      const baseInfo = pointsToAmount(board, basePoints);
+      const steps = continueSteps(board, baseInfo.tierIdx, baseInfo.tierUsed, added);
+      const addedGain = steps.reduce((sum, s) => sum + s.gain, 0);
+      const finalResult = basePoints + addedGain;
+
+      animateNumber(document.getElementById('cont-big-' + board.id), st.contResult, finalResult);
+      document.getElementById('cont-wan-' + board.id).textContent = (finalResult / 10000).toFixed(2);
+      document.getElementById('cont-chips-' + board.id).innerHTML =
+        '<span class="chip">已有积分 ' + formatNumber(basePoints) + '</span>' +
+        '<span class="chip">新增 +' + formatNumber(addedGain) + '</span>' +
+        '<span class="chip">新增加权总数 ' + formatNumber(added) + '</span>' +
+        '<span class="chip">新增部分倍率 ' + (added > 0 ? (addedGain / added * 100).toFixed(2) + '%' : '—') + '</span>';
+
+      const body = steps.length
+        ? steps.map(s => [
+          '<div class="step-item">',
+          '  <div class="step-num">' + s.no + '</div>',
+          '  <div class="step-text">第' + s.no + '阶（' + s.desc + '）：<span class="k">消耗 ' + formatNumber(s.used) + ' × ' + (s.rate * 100) + '% =</span> <b>' + formatNumber(s.gain) + '</b></div>',
+          '</div>'
+        ].join('')).join('')
+        : '<div class="step-item"><div class="step-text">继续消耗数量为 0，最终积分等于已有积分。</div></div>';
+
+      document.getElementById('cont-steps-' + board.id).innerHTML =
+        '<div class="steps-title">续算明细</div>' + body;
+
+      resultEl.classList.add('show');
+      st.contResult = finalResult;
+      st.contShown = true;
+    }
+
+    /* 按钮短暂反馈 */
+    function flashBtn(btn, text) {
+      if (!btn) return;
+      if (btn._flashTimer) clearTimeout(btn._flashTimer);
+      if (!btn._flashLabel) btn._flashLabel = btn.textContent;
+      btn.textContent = text;
+      btn.classList.add('done');
+      btn._flashTimer = setTimeout(() => {
+        btn.textContent = btn._flashLabel;
+        btn.classList.remove('done');
+        btn._flashTimer = null;
+      }, 1400);
+    }
+
+    /* 复制结果 */
+    function copyResult(board, btn) {
+      const st = state[board.id];
+      if (!st || st.result <= 0) return;
+      const text = board.name + '换算结果：' + formatNumber(st.result) + '（即 ' + (st.result / 10000).toFixed(2) + ' 万）';
+
+      const done = () => flashBtn(btn, '已复制 ✓');
+
+      const fallback = () => {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.top = '-1000px';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); done(); } catch (e) { }
+        document.body.removeChild(ta);
+      };
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(fallback);
+      } else {
+        fallback();
+      }
+    }
+
+    /* 复制续算后的最终积分 */
+    function copyContinueResult(board, btn) {
+      const st = state[board.id];
+      if (!st || st.contResult <= 0) return;
+      const text = board.name + '最终积分：' + formatNumber(st.contResult) + '（即 ' + (st.contResult / 10000).toFixed(2) + ' 万）';
+
+      const done = () => flashBtn(btn, '已复制 ✓');
+
+      const fallback = () => {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.top = '-1000px';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); done(); } catch (e) { }
+        document.body.removeChild(ta);
+      };
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(fallback);
+      } else {
+        fallback();
+      }
+    }
+
+    /* ===== 标签切换与初始化 ===== */
+    function switchTab(id) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.id === id));
+      document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.dataset.id === id));
+      placePill();
+    }
+
+    function placePill() {
+      const active = tabsEl.querySelector('.tab.active');
+      if (!active) return;
+      const cs = getComputedStyle(tabsEl);
+      const tr = tabsEl.getBoundingClientRect();
+      const ar = active.getBoundingClientRect();
+      /* 绝对定位的参照系是 .tabs 的 padding box（不含 border），因此只减去边框宽度 */
+      const offX = parseFloat(cs.borderLeftWidth);
+      const offY = parseFloat(cs.borderTopWidth);
+      const a = accent(findBoard(active.dataset.id));
+      pillEl.style.setProperty('--c1', a.c1);
+      pillEl.style.setProperty('--c2', a.c2);
+      pillEl.style.width = ar.width + 'px';
+      pillEl.style.height = ar.height + 'px';
+      pillEl.style.transform = 'translate(' + (ar.left - tr.left - offX) + 'px,' + (ar.top - tr.top - offY) + 'px)';
+    }
+
+    /* 首次定位（不做动画） */
+    requestAnimationFrame(() => {
+      pillEl.style.transition = 'none';
+      placePill();
+      requestAnimationFrame(() => { pillEl.style.transition = ''; });
+    });
+
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(placePill, 120);
+    });
+
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(placePill);
+
+    /* 跟随系统深浅色切换 */
+    const onThemeChange = () => {
+      document.querySelectorAll('.tab').forEach(el => applyVars(el, findBoard(el.dataset.id)));
+      document.querySelectorAll('.panel').forEach(el => applyVars(el, findBoard(el.dataset.id)));
+      placePill();
+    };
+    if (mqDark.addEventListener) mqDark.addEventListener('change', onThemeChange);
+    else if (mqDark.addListener) mqDark.addListener(onThemeChange);
+  </script>
 </body>
+
 </html>
